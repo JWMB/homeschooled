@@ -4,6 +4,7 @@
 	import TailwindCSS from "./style/TailwindCSS.svelte";
 	import { Tools } from "./tools";
 	import { Game } from "./game";
+import Draggable from "./draggable.svelte";
 
 	let game = new Game();
 	export let alternatives = game.alternatives;
@@ -23,7 +24,7 @@
 		//     });
 		//   }
 
-		await generateProblem();
+		generateProblem();
 	});
 
 	function speak(phrase: string) {
@@ -44,9 +45,9 @@
 		console.log(speechSynthesis.getVoices());
 	}
 
-	export let level: number = 0;
-	async function generateProblem() {
-		await game.generateProblem(level);
+	let level: number = 0;
+	function generateProblem() {
+		game.generateProblem(level);
 		// speak(game.selectedCountry.names.en);
 		alternatives = [...game.alternatives]; // Trigger DOM
 		//correctAlternativeForShow = null;
@@ -65,18 +66,22 @@
 			` ${forPercentage.filter((o) => o).length} / ${outOf}`;
 		if (forPercentage.filter((o) => o).length >= levelUpWhen) {
 			level++;
-			game.correctHistory.splice(0, game.correctHistory.length);
+			try {
+				game.correctHistory.splice(0, game.correctHistory.length);
+			} catch (e) {
+				console.log(e);
+			}
 		}
 		if (!result) {
 			alternatives = [...game.alternatives]; // Trigger DOM
 			await game.map.flyTo(alternativeId);
 			await Tools.sleep(1000);
 		}
-		await generateProblem();
+		generateProblem();
 	}
 
 	function onUserLevelChange() {
-		generateProblem();
+		self.setTimeout(() => generateProblem());
 	}
 </script>
 
@@ -123,7 +128,8 @@
 	<div style="float:left; padding-left: 50px">
 		<div>Score</div>
 		<div style="font-size: xx-large;">Level
-			<input type="number" id="quantity" name="quantity" on:change="{e => onUserLevelChange()}" min="1" max="5" value={level}>
+			<input type="number" id="quantity" name="quantity" min="0" max="5" on:input={onUserLevelChange} bind:value={level}>
+			<!-- on:change="{e => onUserLevelChange()}"-->
 		<!-- <div style="font-size: xx-large;">Level {level} -->
 		</div>
 		<div style="font-size: xx-large;">{score}</div>
@@ -148,4 +154,5 @@
 			/>
 		{/each}
 	</div>
+	<!-- <Draggable on:type="{e => console.log(e)}"></Draggable> -->
 </main>

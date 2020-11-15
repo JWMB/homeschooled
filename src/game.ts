@@ -29,10 +29,11 @@ export class Game {
         // "en": "/data/countries-en.json", 
         "geo": "/data/geo.all-50.json" // https://geojson-maps.ash.ms/
       });
-      this.flags = new Flags();
-      await this.flags.load("/data/flags.xml");
   
       this.countriesCollection.init(await (await fetch("/data/countries-data.json")).json());
+
+      this.flags = new Flags();
+      await this.flags.loadSeparate("/data/svg/", this.countriesCollection.get().map(o => o.cca2));
 
       this.countriesCollection.setTranslations(await Tools.fetchMultipleJson({ "sv": "/data/countries-sv.json" }));
       //Remove if we have no flag or translation
@@ -74,7 +75,7 @@ export class Game {
   alternatives: { id: string, name: string, selected: boolean, flag: string }[] = [];
   private previousCorrectAnswers: CountryInfoX[] = [];
 
-  async generateProblem(level: number = 1) {
+  generateProblem(level: number = 1) {
     // TODO: Difficulty level based on 
     // * Correct country: size, distance from home
     // * Alternatives: country size, distance from correct
@@ -102,6 +103,9 @@ export class Game {
       },
       { 
         question: { countries: (country: CountryInfoX) => fRegionMatch([/Americas\/(Northern|South)/], country) }
+      },
+      { 
+        question: { countries: (country: CountryInfoX) => fRegionMatch([/Asia\/(Eastern|South-Eastern)/], country) }
       },
       { 
         question: { countries: (country: CountryInfoX) => true }
@@ -150,6 +154,7 @@ export class Game {
     }
 
     const questionSelection = createSelection(this.countries, levelData.question);
+    // console.log(level, questionSelection);
     const dontUseLatest = Tools.sliceFromEnd(this.previousCorrectAnswers, 3).map(o => o.cca2);
     this.selectedCountry = this.getRandomUniqueItems(questionSelection.filter(o => dontUseLatest.indexOf(o.cca2) < 0), 1)[0];
     // selectedCountry = "Ryssland"; // !!correctPreset ? this.countriesCollection.getCountryEntry(correctPreset) : 
