@@ -11,10 +11,7 @@ export class Flags {
         const loaded = await Tools.fetchMultiple(Tools.arrayToObject(flagUrls, o => o.code, o => o.url), async r => await r.text());
         const joinedFlagsSvgs = Object.keys(loaded).map(k => {
             let xml = <string><any>loaded[k];
-            if (xml.indexOf("<title>") > 0) {
-                xml.replace(/<title>.+<\/title>/, "");
-            }
-            xml = xml.replace(/\stitle=\"[^\"]\"/, "");
+            xml = xml.replace(/<title>.+<\/title>/, "");
             if (xml.includes("xlink:href")) {
                 const prefix = `svg_${k}_`;
                 xml = xml.replace(/xlink:href=\"#([^\"])/g, `href=\"#${prefix}\$1`);
