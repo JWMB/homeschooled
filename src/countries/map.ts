@@ -1,6 +1,6 @@
 import * as L from 'leaflet';
 import type { CountryInfoCollection } from './countryInfo';
-import { Tools } from './tools';
+import { Tools } from '../tools';
 
 export class MyMap {
     async testA() {
@@ -140,6 +140,11 @@ export class MyMap {
         return bounds;
     }
 
+    fitCountries(codeAlpha2OrNames: string[]) {
+        const bounds = codeAlpha2OrNames.map(o => this.getCountryBounds(o)).reduce((p, c) => c.extend(p));
+        this.map.fitBounds(bounds);
+    }
+    
     async fitCountry(codeAlpha2OrName: string): Promise<void> {
         return new Promise<void>((res, rej) =>{
             let bounds = this.getCountryBounds(codeAlpha2OrName);

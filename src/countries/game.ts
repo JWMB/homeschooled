@@ -2,8 +2,8 @@ import { onMount } from "svelte";
 import { CountryInfoX, CountryInfoCollection } from "./countryInfo";
 import { Flags } from "./flags";
 import { MyMap } from "./map";
-import { Ranges } from "./ranges";
-import { Tools } from "./tools";
+import { Ranges } from "../ranges";
+import { Tools } from "../tools";
 
 interface CountriesFilter {
   countries: (country: CountryInfoX) => boolean;
@@ -37,7 +37,7 @@ export class Game {
 
       this.countriesCollection.setTranslations(await Tools.fetchMultipleJson({ "sv": "/data/countries-sv.json" }));
       //Remove if we have no flag or translation
-      console.log("No translation:", this.countriesCollection.get().filter(c => c.names[this.lang] == null));
+      console.log("No translation:", this.countriesCollection.get().filter(c => c.names[this.lang] == null).map(c => `"name":"${c.name.common}","alpha2":"${c.cca2}"`));
       this.countriesCollection.remove(c => c.names[this.lang] == null);
       console.log("No flag:", this.countriesCollection.get().filter(c => this.flags.getSvg(c.cca2) == null));
       this.countriesCollection.remove(c => this.flags.getSvg(c.cca2) == null);
@@ -46,18 +46,14 @@ export class Game {
       await this.map.create(this.countriesCollection, jsons["geo"]);
       await Tools.sleep(500);
   
-  
       this.countries = this.countriesCollection.get()
         .filter(ci => this.map.getCountryBounds(ci.cca2) != null)
         .filter(ci => this.flags.getSvg(ci.cca2) != null);
-      // countries = countriesCollection.getCountryNames(lang)
-      //   .filter(name => map.getCountryData(name) !== null)
-      //   .filter(name => flags.getSvg(countriesCollection.getCountryEntry(name).alpha2) !== null);
     }
   
-    async selectCountry(target: any) {
-        await this.generateProblem(target.selectedOptions[0].value);
-    }
+    // async selectCountry(target: any) {
+    //     await this.generateProblem(target.selectedOptions[0].value);
+    // }
   
     getRandomUniqueItems<T>(arr:T[], numItems: number): T[] {
         const indices = new Array(numItems).fill(0).map((v, i) => Math.floor(Math.random() * (arr.length - i)));
@@ -154,6 +150,7 @@ export class Game {
     }
 
     const questionSelection = createSelection(this.countries, levelData.question);
+    this.map.fitCountries(questionSelection.map(o => o.cca2));
     // console.log(level, questionSelection);
     const dontUseLatest = Tools.sliceFromEnd(this.previousCorrectAnswers, 3).map(o => o.cca2);
     this.selectedCountry = this.getRandomUniqueItems(questionSelection.filter(o => dontUseLatest.indexOf(o.cca2) < 0), 1)[0];
@@ -178,9 +175,11 @@ export class Game {
         }
     }
   
+    this.map.selectCountry(this.selectedCountry.cca2);
     if (true) {
-        document.getElementById("map").style.visibility = "hidden";
     } else {
+      // this.map.fitCountry(this.selectedCountry.cca2);
+      // this.map.zoomOut();
     }
     this.acceptResponse = true;
   }

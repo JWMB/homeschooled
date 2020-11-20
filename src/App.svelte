@@ -3,8 +3,10 @@
 	import Alternative from "./alternative.svelte";
 	import TailwindCSS from "./style/TailwindCSS.svelte";
 	import { Tools } from "./tools";
-	import { Game } from "./game";
-import Draggable from "./draggable.svelte";
+	import { Game } from "./countries/game";
+	import { DropZone, Game as SortingGame } from "./sorting/game";
+	import Draggable from "./draggable.svelte";
+import { HtmlTools } from "./htmlTools";
 
 	let game = new Game();
 	export let alternatives = game.alternatives;
@@ -14,6 +16,7 @@ import Draggable from "./draggable.svelte";
 	export let images: { src: string; alt: string }[] = [];
 
 	onMount(async () => {
+		startSorting();
 		await game.init();
 		// const select: any = document.getElementById("countries");
 		//     if (!!select) {
@@ -39,10 +42,10 @@ import Draggable from "./draggable.svelte";
 			return null;
 		speechSynthesis.addEventListener("voiceschanged", () => {
 			const voices = speechSynthesis.getVoices();
-			console.log(voices);
+			// console.log(voices);
 			voices.forEach((v, i) => console.log(v.lang, v.name));
 		});
-		console.log(speechSynthesis.getVoices());
+		// console.log(speechSynthesis.getVoices());
 	}
 
 	let level: number = 0;
@@ -83,16 +86,27 @@ import Draggable from "./draggable.svelte";
 	function onUserLevelChange() {
 		self.setTimeout(() => generateProblem());
 	}
+
+
+	function startSorting() {
+		const g = new SortingGame(new DropZone(document.getElementById("dropZone")));
+		const level = g.generate();
+		const itemsParent = document.getElementById("sorting");
+		itemsParent.childNodes.forEach(c => c.remove());
+		level.items.forEach(item => {
+			const el = document.createElement("DIV");
+			itemsParent.appendChild(el);
+			el.setAttribute("data-value", item.year.toString());
+			el.className = "dragItem";
+			el.textContent = item.text;
+			g.makeElementDraggable(el);
+		});
+	}
 </script>
 
 <style>
-	main {
-		@apply p-4;
-	}
-	h1,
-	p {
-		@apply text-gray-600;
-	}
+	main { @apply p-4; }
+	h1, p { @apply text-gray-600; }
 	:global(.response-option.selected) {
 		border-width: 5px;
 		border-color: brown;
@@ -104,6 +118,18 @@ import Draggable from "./draggable.svelte";
 	:global(.flag) {
 		width: 200px;
 		height: 170px;
+	}
+	:global(.dragItem) {
+		display: inline-block;
+    background-color: #FFF3CC;
+    border: #DFBC6A 1px solid;
+    width: 150px;
+	height: 80px;
+	margin: 10px;
+    padding: 8px;
+    font-size: 18px;
+    text-align: center;
+	box-shadow: 2px 2px 2px #999;
 	}
 </style>
 
@@ -154,5 +180,23 @@ import Draggable from "./draggable.svelte";
 			/>
 		{/each}
 	</div>
-	<!-- <Draggable on:type="{e => console.log(e)}"></Draggable> -->
+
+	<div id="dropZone" style="
+	display: inline-block;
+	position: absolute;
+	left: 1000px;
+	top: 250px;
+	background-color: #AAF3CC;
+	border: #DFBC6A 1px solid;
+    width: 500px;
+	height: 150px;
+    padding: 8px;
+    font-size: 18px;
+    text-align: center;
+">
+	</div>
+
+	<div id="sorting">
+
+	</div>
 </main>

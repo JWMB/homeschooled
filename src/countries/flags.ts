@@ -1,6 +1,5 @@
-import { dispatch_dev } from "svelte/internal";
-import { HtmlTools } from "./htmlTools";
-import { Tools } from "./tools";
+import { HtmlTools } from "../htmlTools";
+import { Tools } from "../tools";
 
 export class Flags {
     private codeToSvg: {[name: string]: Element};
@@ -30,9 +29,7 @@ export class Flags {
     }
 
     loadDocument(xml: string) {
-        // const flagsDocument = (new window.DOMParser()).parseFromString(`<html>${xml}</html>`, "text/xml");
         const document = HtmlTools.parseHtml(`<html>${xml}</html>`);
-        //const titles = HtmlTools.getNodesXPath(document, "//title"); // TODO: why doesn't this work?
         const divs = HtmlTools.childNodesToArray(document.body).filter(o => o.nodeName === "DIV");
         this.codeToSvg = Tools.arrayToObject(divs, o => o.id, o => HtmlTools.nodesToArray(o.childNodes).find(n => n.nodeName === "svg"));
     }

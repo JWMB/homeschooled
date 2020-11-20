@@ -1,6 +1,6 @@
-import { HtmlTools } from "./htmlTools";
+import { HtmlTools } from "../htmlTools";
 import type { LatLng } from "leaflet";
-import { Tools } from "./tools";
+import { Tools } from "../tools";
 
 export interface CountryInfoZZ {
     continent: string;

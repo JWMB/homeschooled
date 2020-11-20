@@ -10,6 +10,13 @@ export class HtmlTools {
         }
         return doc;
     }
+    static collectionToArray(elements: HTMLCollectionOf<Element>) {
+        const result: Element[] = []
+        for (let i = 0; i < elements.length; i++) {
+            result.push(elements.item(i));
+        }
+        return result;
+    }
     static nodesToArray(nodes: NodeListOf<ChildNode>) {
         const entries = nodes.entries();
         return Tools.iteratorToArray(() => entries.next(), v => !!v.done).map(o => <HTMLElement>o.value[1]);
