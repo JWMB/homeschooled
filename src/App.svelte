@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import Alternative from "./alternative.svelte";
+	import CardComponent from "./cardComponent.svelte";
 	import TailwindCSS from "./style/TailwindCSS.svelte";
 	import { Tools } from "./tools";
 	import { Game } from "./countries/game";
 	import { DropZone, Game as SortingGame } from "./sorting/game";
-	import Draggable from "./draggable.svelte";
-import { HtmlTools } from "./htmlTools";
 
 	let game = new Game();
 	export let alternatives = game.alternatives;
@@ -16,17 +15,9 @@ import { HtmlTools } from "./htmlTools";
 	export let images: { src: string; alt: string }[] = [];
 
 	onMount(async () => {
-		startSorting();
+		await startSorting();
+	
 		await game.init();
-		// const select: any = document.getElementById("countries");
-		//     if (!!select) {
-		//       game.countries.forEach(ci => {
-		//         const option = document.createElement("option");
-		//         option.text = ci.names[this.lang];
-		//         select.add(option);
-		//     });
-		//   }
-
 		generateProblem();
 	});
 
@@ -88,19 +79,15 @@ import { HtmlTools } from "./htmlTools";
 	}
 
 
-	function startSorting() {
-		const g = new SortingGame(new DropZone(document.getElementById("dropZone")));
-		const level = g.generate();
+	let cards: any[] = []; //Card - error: 'Card' is not exported by src\sorting\game.ts, imported by src\App.svelt
+	let sortingGame: SortingGame;
+	async function startSorting() {
+		sortingGame = new SortingGame(new DropZone(document.getElementById("dropZone")));
+		await sortingGame.loadMarkdown("https://raw.githubusercontent.com/JWMB/game-level-contrib/master/sorting-cards/cards.md");
+		const level = sortingGame.generate();
 		const itemsParent = document.getElementById("sorting");
-		itemsParent.childNodes.forEach(c => c.remove());
-		level.items.forEach(item => {
-			const el = document.createElement("DIV");
-			itemsParent.appendChild(el);
-			el.setAttribute("data-value", item.year.toString());
-			el.className = "dragItem";
-			el.textContent = item.text;
-			g.makeElementDraggable(el);
-		});
+		itemsParent.childNodes.forEach(c => c.remove())
+		cards = level.items;
 	}
 </script>
 
@@ -123,8 +110,8 @@ import { HtmlTools } from "./htmlTools";
 		display: inline-block;
     background-color: #FFF3CC;
     border: #DFBC6A 1px solid;
-    width: 150px;
-	height: 80px;
+    width: 200px;
+	height: 150px;
 	margin: 10px;
     padding: 8px;
     font-size: 18px;
@@ -184,12 +171,12 @@ import { HtmlTools } from "./htmlTools";
 	<div id="dropZone" style="
 	display: inline-block;
 	position: absolute;
-	left: 1000px;
+	left: 800px;
 	top: 250px;
 	background-color: #AAF3CC;
 	border: #DFBC6A 1px solid;
-    width: 500px;
-	height: 150px;
+    width: 1000px;
+	height: 250px;
     padding: 8px;
     font-size: 18px;
     text-align: center;
@@ -197,6 +184,9 @@ import { HtmlTools } from "./htmlTools";
 	</div>
 
 	<div id="sorting">
-
+		{#each cards as card}
+		<CardComponent title={card.text} body="" value={card.value1} imageUrl={(card.images || [null])[0]}
+			on:mount={e => sortingGame.makeElementDraggable(e.detail.element)}></CardComponent>
+		{/each}
 	</div>
 </main>

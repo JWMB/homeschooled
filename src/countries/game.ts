@@ -33,7 +33,8 @@ export class Game {
       this.countriesCollection.init(await (await fetch("/data/countries-data.json")).json());
 
       this.flags = new Flags();
-      await this.flags.loadSeparate("/data/svg/", this.countriesCollection.get().map(o => o.cca2));
+      //await this.flags.loadSeparate("/data/svg/", this.countriesCollection.get().map(o => o.cca2));
+      await this.flags.load("/data/flags.xml");
 
       this.countriesCollection.setTranslations(await Tools.fetchMultipleJson({ "sv": "/data/countries-sv.json" }));
       //Remove if we have no flag or translation
@@ -55,18 +56,6 @@ export class Game {
     //     await this.generateProblem(target.selectedOptions[0].value);
     // }
   
-    getRandomUniqueItems<T>(arr:T[], numItems: number): T[] {
-        const indices = new Array(numItems).fill(0).map((v, i) => Math.floor(Math.random() * (arr.length - i)));
-        const copy = arr.concat([]);
-        const result: T[] = [];
-        for (let i = 0; i < numItems; i++) {
-            const index = indices[i];
-            result.push(copy[index]);
-            copy.splice(index, 1);
-        }
-        return result;
-    }
-
   correctAlternativeForShow: { id: string, name: string, flag: string };
   alternatives: { id: string, name: string, selected: boolean, flag: string }[] = [];
   private previousCorrectAnswers: CountryInfoX[] = [];
@@ -153,7 +142,7 @@ export class Game {
     this.map.fitCountries(questionSelection.map(o => o.cca2));
     // console.log(level, questionSelection);
     const dontUseLatest = Tools.sliceFromEnd(this.previousCorrectAnswers, 3).map(o => o.cca2);
-    this.selectedCountry = this.getRandomUniqueItems(questionSelection.filter(o => dontUseLatest.indexOf(o.cca2) < 0), 1)[0];
+    this.selectedCountry = Tools.getRandomUniqueItems(questionSelection.filter(o => dontUseLatest.indexOf(o.cca2) < 0), 1)[0];
     // selectedCountry = "Ryssland"; // !!correctPreset ? this.countriesCollection.getCountryEntry(correctPreset) : 
     this.previousCorrectAnswers.push(this.selectedCountry);
 
@@ -185,7 +174,7 @@ export class Game {
   }
   
   generateAlternatives(fromCountries: string[], correctCountry: CountryInfoX, numTotalAlternatives: number = 3) {
-    const selectedNames = this.getRandomUniqueItems(fromCountries.filter(c => c !== correctCountry.names[this.lang]), numTotalAlternatives - 1);
+    const selectedNames = Tools.getRandomUniqueItems(fromCountries.filter(c => c !== correctCountry.names[this.lang]), numTotalAlternatives - 1);
   
     // insert correct in random place:
     const index = Math.floor(Math.random() * (selectedNames.length + 1));

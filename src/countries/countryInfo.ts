@@ -169,13 +169,13 @@ export class CountryInfoCollection {
         //     else console.log(o.alpha2);
         // });
         Object.keys(jsons).forEach(lang => {
-            const forLang = jsons[lang];
+            const forLang = jsons[lang].filter(o => o.alpha2.length != 0);
             forLang.forEach(entry => {
                 const found = this.countries.find(c => c.cca2.toLowerCase() == entry.alpha2.toLowerCase());
                 if (!!found) {
                     found.names[lang] = entry.name;
                 } else {
-                    console.log("pspsp", entry.alpha2.toLowerCase());
+                    console.log("translation / not found", entry.alpha2.toLowerCase());
                 }
             });
         });

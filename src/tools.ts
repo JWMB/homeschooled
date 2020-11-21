@@ -25,9 +25,9 @@ export class Tools {
     static async fetchMultipleJson(idsUrls: {[name: string]: string}): Promise<{[name: string]: any}> {
         return await Tools.fetchMultiple(idsUrls, async r => await r.json());
     }
-    static arrayToObject<T, U>(arr: U[], fGetKey: (obj: U) => string, fGetValue: (obj: U) => T) {
+    static arrayToObject<T, U>(arr: U[], fGetKey: (obj: U) => string, fGetValue: (obj: U, index: number) => T) {
         const obj: {[name: string]: T} = {};
-        arr.forEach(o => obj[fGetKey(o)] = fGetValue(o));
+        arr.forEach((o, i) => obj[fGetKey(o)] = fGetValue(o, i));
         return obj;
     }
     static objectToArray<T>(obj: {[name: string]: any}, fCreateObj: (key: string, obj: any) => T) {
@@ -64,4 +64,17 @@ export class Tools {
         }
         return result;
     }
+
+    static getRandomUniqueItems<T>(arr:T[], numItems: number): T[] {
+        const indices = new Array(numItems).fill(0).map((v, i) => Math.floor(Math.random() * (arr.length - i)));
+        const copy = arr.concat([]);
+        const result: T[] = [];
+        for (let i = 0; i < numItems; i++) {
+            const index = indices[i];
+            result.push(copy[index]);
+            copy.splice(index, 1);
+        }
+        return result;
+    }
+
 }

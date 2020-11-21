@@ -1,18 +1,87 @@
+import { MarkdownTable, Table, TsvTable } from "../table";
+import { Tools } from "../tools";
+
+export interface Card {
+	value1: number;
+	value2?: number;
+	tags?: string[];
+	text: string;
+	images?: string[];
+}
+
 export class Game {
     dropZone: DropZone;
     constructor(dropZone: DropZone) {
-        this.dropZone = dropZone;
-    }
-    generate() {
-        const alternatives = [
-            { "year": 843, "text": "Treaty of Verdun"},
-            { "year": 1461, "text": "Louis XI"},
-            { "year": 1789, "text": "French Revolution"},
+		this.dropZone = dropZone;
+		
+		this.cards = [
+            { value1: 843, text: "Treaty of Verdun"},
+            { value1: 1461, text: "Louis XI"},
+            { value1: 1789, text: "French Revolution"},
         ];
+	}
 
-        this.dropZone.setNumSlots(alternatives.length);
+	cards: Card[] = [];
+	async loadTsv(url: string) {
+		const text = await (await fetch(url)).text();
+		const table = TsvTable.parse(text);
+		const objs = table.getAsObjects();
 
-        return { sortBy: "year", items: alternatives };
+		this.loadObjs(objs, url);
+
+		function markDownImagesString(images: string[]): string {
+			return images.map(img => `![](${img})`).join(" ");
+		}
+	}
+
+	async loadMarkdown(url: string) {
+		const text = await (await fetch(url)).text();
+		const table = MarkdownTable.parse(text);
+		const objs = table.getAsObjects();
+		objs.filter(o => o.Images?.length > 0).forEach(o => o.Images = parseImages(o.Images));
+
+		this.loadObjs(objs, url);
+
+		function parseImages(str: string): string[] {
+			if (str == null) return [];
+			return str.split("![]").map(o => {
+				const m = /\(([^\)]+)\)/.exec(o);
+				return m == null ? null : m[1];
+			}).filter(o => o != null);
+		}
+	}
+
+	static makeRelUrlAbs(url: string, baseUrl: string) {
+		return url.indexOf("//") < 0 ? `${baseUrl}/${url}` : url;
+	}
+	loadObjs(objs: any[], sourceUrl: string) {
+		this.cards = objs.map(obj => {
+			return <Card>{ 
+				value1: parseDateToNumber(obj.Value1),
+				value2: parseDateToNumber(obj.Value2),
+				tags: obj.Tags.split(","),
+				text: obj.Text,
+				images: obj.Images
+			};
+		});
+
+		const baseUrl = sourceUrl.substr(0, sourceUrl.lastIndexOf("/"));
+		this.cards.filter(o => o.images?.length > 0).forEach(o => o.images = o.images.map(img => Game.makeRelUrlAbs(img, baseUrl)));
+
+		function parseDateToNumber(str: string): number | null {
+			const date = new Date(str);
+			return isNaN(date.getDate()) ? null : date.valueOf();
+		}
+	}
+
+    generate() {
+		// e.g. this.cards.filter(c => c.tags == null || c.tags.indexOf("WWII") >= 0);
+		const selected = Tools.getRandomUniqueItems(this.cards, 3);
+
+        this.dropZone.setNumSlots(selected.length);
+
+		// console.log(selected);
+        return { items: selected };
     }
 
     makeElementDraggable(el: HTMLElement) {
@@ -75,51 +144,59 @@ export class DropZone {
         const r = this.rect;
         const isInside = clientX >= r.left && clientX <= r.right
             && clientY >= r.top && clientY <= r.bottom;
-        if (!isInside) {
-            console.log(r.left, r.top, r.right, r.bottom, clientX, clientY);
-        }
+        // if (!isInside) { console.log(r.left, r.top, r.right, r.bottom, clientX, clientY); }
         return isInside;
     }
 
     makePlaceFor(clientX: number, clientY: number, dropThis?: HTMLElement) {
-        let slots = this.slots;
+		if (this.slots.indexOf(null) < 0) return false;
 		const r = this.rect; 
-		const wPerSlot = r.width / slots.length;
+		const wPerSlot = r.width / this.slots.length;
 		const xInside = clientX - r.left;
-		const originalSLots = slots.slice();
+		const originalSLots = this.slots.slice();
 		const targetSlotIndex = Math.max(0, Math.min(this.slots.length - 1, Math.floor(xInside / wPerSlot)));
-		 if (slots[targetSlotIndex] != null) {
-			let firstEmptyIndex = slots.indexOf(null, targetSlotIndex);
-			if (firstEmptyIndex >= 0) {
-				for (var i = firstEmptyIndex; i > targetSlotIndex; i--) {
-					slots[i] = slots[i - 1];
+		 if (this.slots[targetSlotIndex] != null) {
+			 // find closest empty slot
+			for (let i = 0; i < this.slots.length * 2; i++) {
+				// every other right left
+				const direction = (i % 2 == 0 ? 1 : -1);
+				const offset =  direction * Math.floor((i + 2) / 2);
+				const index = targetSlotIndex + offset;
+				if (index >= 0 && index < this.slots.length) {
+					if (this.slots[index] == null) {
+						// move slot contents
+						if (index > targetSlotIndex) {
+							for (let mi = index; mi > targetSlotIndex; mi--) {
+								this.slots[mi] = this.slots[mi - 1];
+							}
+						} else {
+							for (let mi = index; mi < targetSlotIndex; mi++) {
+								this.slots[mi] = this.slots[mi + 1];
+							}
+						}
+
+						break;
+					}
 				}
-			} else {
-				firstEmptyIndex = slots.slice(0, targetSlotIndex).indexOf(null);
-				if (firstEmptyIndex < 0) {
-                    console.log("No empty spot: ", this.slots);
-					return false;
-				}
-				for (var i = firstEmptyIndex; i < targetSlotIndex; i++) {
-					slots[i] = slots[i + 1];
-				}
-			}
+			 }
          }
-         console.log("targetSlotIndex", targetSlotIndex);
+
 		 if (dropThis != null) {
-			slots[targetSlotIndex] = dropThis;
+			this.slots[targetSlotIndex] = dropThis;
 		 }
 
-		 slots.forEach((o, i) => {
+		 this.slots.forEach((o, i) => {
 			 if (o != null) {
 				o.style.position = "absolute";
-			o.style.left = `${r.left + wPerSlot * i}px`;
-			o.style.top = `${r.top}px`;
+				o.style.left = `${r.left + wPerSlot * i}px`;
+				o.style.top = `${r.top}px`;
 			 }
 		 });
-		 if (dropThis == null) {
-		 	slots = originalSLots;
+
+		 if (dropThis == null) { // reset to original if nothing is dropped
+		 	this.slots = originalSLots;
 		 }
+		 return true;
     }
     
     isSortedAndFull() {
