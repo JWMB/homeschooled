@@ -4,8 +4,11 @@ import { Tools } from "../tools";
 export interface Card {
 	value1: number;
 	value2?: number;
+	unit?: string;
 	tags?: string[];
-	text: string;
+	difficulty?: any;
+	title?: string;
+	body: string;
 	images?: string[];
 }
 
@@ -15,9 +18,9 @@ export class Game {
 		this.dropZone = dropZone;
 		
 		this.cards = [
-            { value1: 843, text: "Treaty of Verdun"},
-            { value1: 1461, text: "Louis XI"},
-            { value1: 1789, text: "French Revolution"},
+            { value1: 843, title: "Treaty of Verdun", body: ""},
+            { value1: 1461, title: "Louis XI", body: ""},
+            { value1: 1789, title: "French Revolution", body: ""},
         ];
 	}
 
@@ -26,6 +29,11 @@ export class Game {
 		const text = await (await fetch(url)).text();
 		const table = TsvTable.parse(text);
 		const objs = table.getAsObjects();
+
+		// const objsCopy = table.getAsObjects();
+		// objsCopy.filter(o => o.Images?.length > 0).forEach(o => o.Images = markDownImagesString(o.Images.split(",").filter(img => img.length > 0)));
+		// const tx = Table.createFromObjects(objsCopy);
+		// console.log(MarkdownTable.toString(tx));
 
 		this.loadObjs(objs, url);
 
@@ -39,6 +47,9 @@ export class Game {
 		const table = MarkdownTable.parse(text);
 		const objs = table.getAsObjects();
 		objs.filter(o => o.Images?.length > 0).forEach(o => o.Images = parseImages(o.Images));
+
+		// const tx = Table.createFromObjects(objs);
+		// console.log(TsvTable.toString(tx));
 
 		this.loadObjs(objs, url);
 
@@ -60,7 +71,8 @@ export class Game {
 				value1: parseDateToNumber(obj.Value1),
 				value2: parseDateToNumber(obj.Value2),
 				tags: obj.Tags.split(","),
-				text: obj.Text,
+				title: obj.Title,
+				body: obj.Body,
 				images: obj.Images
 			};
 		});

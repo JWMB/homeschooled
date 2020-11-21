@@ -67,7 +67,7 @@ export class MarkdownTable {
 
 	static toString(table: Table) {
 		const numColumns = table.header.length;
-		return `${renderRow(table.header)}\n${renderRow(new Array(numColumns).fill("---"))}\n${table.data.map(r => renderRow(r)).join("\n")}`;
+		return `${renderRow(table.header)}\n${renderRow(new Array(numColumns - 1).fill("---"))}\n${table.data.map(r => renderRow(r)).join("\n")}`;
 
 		function renderRow(items: any[]) {
 			return `| ${items.join(" | ")}`;

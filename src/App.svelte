@@ -24,8 +24,6 @@
 	function speak(phrase: string) {
 		if (!window.SpeechSynthesisUtterance || !window.speechSynthesis) return;
 		let utterance = new SpeechSynthesisUtterance(phrase);
-		// utterance.pitch = pitch.value;
-		// utterance.rate = rate.value;
 		speechSynthesis.speak(utterance);
 	}
 	function getVoices() {
@@ -83,6 +81,7 @@
 	let sortingGame: SortingGame;
 	async function startSorting() {
 		sortingGame = new SortingGame(new DropZone(document.getElementById("dropZone")));
+		// await sortingGame.loadTsv("https://raw.githubusercontent.com/JWMB/game-level-contrib/master/sorting-cards/cards.tsv");
 		await sortingGame.loadMarkdown("https://raw.githubusercontent.com/JWMB/game-level-contrib/master/sorting-cards/cards.md");
 		const level = sortingGame.generate();
 		const itemsParent = document.getElementById("sorting");
@@ -94,40 +93,15 @@
 <style>
 	main { @apply p-4; }
 	h1, p { @apply text-gray-600; }
-	:global(.response-option.selected) {
-		border-width: 5px;
-		border-color: brown;
-	}
-	:global(.country-name) {
-		font-size: large;
-		font-weight: bold;
-	}
-	:global(.flag) {
-		width: 200px;
-		height: 170px;
-	}
-	:global(.dragItem) {
-		display: inline-block;
-    background-color: #FFF3CC;
-    border: #DFBC6A 1px solid;
-    width: 200px;
-	height: 150px;
-	margin: 10px;
-    padding: 8px;
-    font-size: 18px;
-    text-align: center;
-	box-shadow: 2px 2px 2px #999;
-	}
+	:global(.response-option.selected) { border-width: 5px; border-color: brown; }
+	:global(.country-name) { font-size: large; font-weight: bold; }
+	:global(.flag) { width: 200px; height: 170px; }
 </style>
 
-<link
-	rel="stylesheet"
-	href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+<link rel="stylesheet" crossorigin="" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
 	integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-	crossorigin=""
 />
 <!-- <select id="countries" on:change="{(e) => selectCountry(e.target)}"></select> -->
-
 <TailwindCSS />
 <main>
 	<div style="float: right; overflow-y: auto; height: 100vh;">
@@ -185,7 +159,7 @@
 
 	<div id="sorting">
 		{#each cards as card}
-		<CardComponent title={card.text} body="" value={card.value1} imageUrl={(card.images || [null])[0]}
+		<CardComponent title={card.title} body={card.body} value={card.value1} imageUrl={(card.images || [null])[0]}
 			on:mount={e => sortingGame.makeElementDraggable(e.detail.element)}></CardComponent>
 		{/each}
 	</div>
