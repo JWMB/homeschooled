@@ -108,8 +108,13 @@ export class MyMap {
 
     private selectedCountries: string[] = [];
 
-    selectCountry(codeAlpha2OrName: string) {
+    selectCountry(codeAlpha2OrName: string | null) {
         this.selectedCountries.forEach(code => this.setCountryHilight(code, false));
+
+        if (codeAlpha2OrName == null) {
+            this.selectedCountries = [];
+            return true;
+        }
 
         const cd = this.getCountryData(codeAlpha2OrName);
         if (!cd) {

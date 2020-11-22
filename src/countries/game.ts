@@ -22,9 +22,7 @@ export class Game {
     acceptResponse: boolean = false;
     popupWindow: Window;
   
-    async init() {
-      //const baseUrl = "/data/";
-      const baseUrl = "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
+    async init(baseUrl: string) {
       this.map = new MyMap();
       const jsons = await Tools.fetchMultipleJson({
         // "sv": "/data/countries-sv.json", // https://github.com/stefangabos/world_countries/tree/master/data // pretty crap coverage, some 20-30 countries missing...
@@ -44,6 +42,7 @@ export class Game {
       this.countriesCollection.remove(c => c.names[this.lang] == null);
       // console.log("No flag:", this.countriesCollection.get().filter(c => this.flags.getSvg(c.cca2) == null));
       this.countriesCollection.remove(c => this.flags.getSvg(c.cca2) == null);
+      this.countriesCollection.remove(c => !c.independent);
 
       //console.log(this.countriesCollection.get().map(c => `${c.cca2} ${c.name.common} ${c.names.sv}`));
       await this.map.create(this.countriesCollection, jsons["geo"]);
@@ -62,7 +61,7 @@ export class Game {
   alternatives: { id: string, name: string, selected: boolean, flag: string }[] = [];
   private previousCorrectAnswers: CountryInfoX[] = [];
 
-  generateProblem(level: number = 1) {
+  generateProblem(level: number = 0) {
     // TODO: Difficulty level based on 
     // * Correct country: size, distance from home
     // * Alternatives: country size, distance from correct
@@ -99,7 +98,9 @@ export class Game {
       },
     ];
 
-    const levelData = levelsData[Math.max(0, Math.min(levelsData.length - 1, level))];
+    const inLevelVariants = 3;
+    const xLevel = Math.floor(level / inLevelVariants);
+    const levelData = levelsData[Math.max(0, Math.min(levelsData.length - 1, xLevel))];
     // 0: "Africa/Eastern Africa"
     // 1: "Africa/Middle Africa"
     // 2: "Africa/Northern Africa"
@@ -159,21 +160,27 @@ export class Game {
       .map(o => this.countriesCollection.getCountryName(o.name, this.lang)).filter(o => o != null);
     this.alternatives = this.generateAlternatives(closeCountries, this.selectedCountry);
   
-    if (true) {
-        this.correctAlternativeForShow = { ...this.alternatives.find(o => o.name === this.selectedCountry.names[this.lang])};
-        if (false) {
-        } else {
-            this.correctAlternativeForShow.flag = null;
-            this.alternatives.forEach(o => o.name = "");
-        }
-    }
-  
-    this.map.selectCountry(this.selectedCountry.cca2);
-    if (true) {
+    const variant = level % inLevelVariants;
+    this.correctAlternativeForShow = { ...this.alternatives.find(o => o.name === this.selectedCountry.names[this.lang])};
+    if (variant === 0) {
+      this.correctAlternativeForShow.flag = null;
+      this.alternatives.forEach(o => o.name = "");
+      this.map.selectCountry(this.selectedCountry.cca2);
+
+    } else if (variant === 1) {
+      this.correctAlternativeForShow.name = "";
+      this.alternatives.forEach(o => o.flag = null);
+      this.map.selectCountry(this.selectedCountry.cca2);
+
     } else {
-      // this.map.fitCountry(this.selectedCountry.cca2);
-      // this.map.zoomOut();
+      this.correctAlternativeForShow.name = this.selectedCountry.capital[0];
+      this.correctAlternativeForShow.flag = null;
+      this.alternatives.forEach(o => o.name = "");
+      this.map.selectCountry(null);
     }
+    // this.map.fitCountry(this.selectedCountry.cca2);
+    // this.map.zoomOut();
+
     this.acceptResponse = true;
   }
   

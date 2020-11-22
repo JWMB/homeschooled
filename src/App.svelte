@@ -19,7 +19,8 @@
 		// investigateSplitRegions(jsons.geo);
 		await startSorting();
 	
-		await game.init();
+		const baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
+		await game.init(baseUrl);
 		generateProblem();
 	});
 
@@ -120,7 +121,7 @@
 	main { @apply p-4; }
 	h1, p { @apply text-gray-600; }
 	:global(.response-option.selected) { border-width: 5px; border-color: brown; }
-	:global(.country-name) { font-size: large; font-weight: bold; }
+	:global(.country-name) { font-size: x-large; font-weight: bold; }
 	:global(.flag) { width: 200px; height: 170px; }
 </style>
 
@@ -151,7 +152,7 @@
 			<div>
 				<Alternative
 					alternativeId="{correctAlternativeForShow.id}"
-					country="{correctAlternativeForShow.name}"
+					text="{correctAlternativeForShow.name}"
 					flagSvg="{correctAlternativeForShow.flag}"
 				/>
 				<br />
@@ -161,10 +162,11 @@
 			<Alternative
 				selected="{item.selected}"
 				alternativeId="{item.id}"
-				country="{item.name}"
+				text="{item.name}"
 				flagSvg="{item.flag}"
 				on:message="{(e) => registerResponse(e.detail.alternativeId)}"
 			/>
+			<br/>
 		{/each}
 	</div>
 

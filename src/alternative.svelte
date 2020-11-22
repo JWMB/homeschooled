@@ -2,7 +2,8 @@
 import { createEventDispatcher, onMount } from 'svelte';
 
 const dispatch = createEventDispatcher();
-export let country: string;
+export let text: string;
+export let text2: string = "";
 export let flagSvg: string;
 export let alternativeId: string;
 export let selected: boolean = false;
@@ -20,7 +21,7 @@ onMount(async () => {
 });
 function choose() {
     dispatch('message', {
-        country: country,
+        text: text,
         alternativeId: alternativeId
     });
 }
@@ -28,7 +29,8 @@ function choose() {
 </script>
 
 <div class="response-option {selected ? 'selected' : ''}"  on:click="{choose}"> 
-    <div class="country-name">{country}</div>
+    <div class="country-name">{text}</div>
+    <div class="country-name">{text2}</div>
     {#if flagSvg != null}
     <div class="flag" bind:this={me}></div>
     {/if}
