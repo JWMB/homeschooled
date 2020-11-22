@@ -23,20 +23,22 @@ export class Game {
     popupWindow: Window;
   
     async init() {
+      //const baseUrl = "/data/";
+      const baseUrl = "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
       this.map = new MyMap();
       const jsons = await Tools.fetchMultipleJson({
         // "sv": "/data/countries-sv.json", // https://github.com/stefangabos/world_countries/tree/master/data // pretty crap coverage, some 20-30 countries missing...
         // "en": "/data/countries-en.json", 
-        "geo": "/data/geo.all-50.json" // https://geojson-maps.ash.ms/ https://www.naturalearthdata.com/downloads/
+        "geo": `${baseUrl}geo.all-50.json` // https://geojson-maps.ash.ms/ https://www.naturalearthdata.com/downloads/
       });
   
-      this.countriesCollection.init(await (await fetch("/data/countries-data.json")).json());
+      this.countriesCollection.init(await (await fetch(`${baseUrl}countries-data.json`)).json());
 
       this.flags = new Flags();
       //await this.flags.loadSeparate("/data/svg/", this.countriesCollection.get().map(o => o.cca2));
-      await this.flags.load("/data/flags.xml");
+      await this.flags.load(`${baseUrl}flags.xml`);
 
-      this.countriesCollection.setTranslations(await Tools.fetchMultipleJson({ "sv": "/data/countries-sv.json" }));
+      this.countriesCollection.setTranslations(await Tools.fetchMultipleJson({ "sv": `${baseUrl}countries-sv.json` }));
       //Remove if we have no flag or translation
       // console.log("No translation:", this.countriesCollection.get().filter(c => c.names[this.lang] == null).map(c => `"name":"${c.name.common}","alpha2":"${c.cca2}"`));
       this.countriesCollection.remove(c => c.names[this.lang] == null);
