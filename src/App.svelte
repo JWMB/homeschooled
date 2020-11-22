@@ -15,11 +15,37 @@
 	export let images: { src: string; alt: string }[] = [];
 
 	onMount(async () => {
+		// const jsons = await Tools.fetchMultipleJson({"geo": "/data/geo.all-50.json"});
+		// investigateSplitRegions(jsons.geo);
 		await startSorting();
 	
 		await game.init();
 		generateProblem();
 	});
+
+	function investigateSplitRegions(geo: any) {
+		const xx = geo.features.filter(o => o.type == "Feature" && o.geometry.type == "MultiPolygon")
+	  	.filter(o => o.properties.name == "France");
+	  console.log(xx.map(o => `${o.properties.iso_a2} ${o.properties.name} ${XX(o.geometry.coordinates)}`).join("\n"));
+
+	  function XX(coordinates: [number, number][][][]) {
+		const allBounds = coordinates.map(cset => {
+			const bounds = cset.map(sub => {
+				const longs = Tools.getMinMax(sub.map(o => o[0]));
+				const lats = Tools.getMinMax(sub.map(o => o[1]));
+				return { w: longs.min, e: longs.max, n: lats.max, s: lats.min };
+				//return `long:${longs.min} - ${longs.max} lat:${lats.min} - ${lats.max}`;
+			});
+			return bounds;
+		});
+
+		const flattened = Tools.flatten(allBounds, 2);
+		const boundsAreas = flattened.map(b => (b.e - b.w) * (b.n - b.s));
+		const ordered = boundsAreas.sort((a, b) => b - a);
+		const factors = ordered.map(o => o / ordered[0]);
+		return "ordered: " + factors.join(",");
+	  }
+	}
 
 	function speak(phrase: string) {
 		if (!window.SpeechSynthesisUtterance || !window.speechSynthesis) return;
