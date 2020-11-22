@@ -65,6 +65,14 @@ export class Tools {
         return result;
     }
 
+    static flatten<T>(arr: T[][], depth: number = 1): T[] { 
+        if (depth == 0) return <T[]><any>arr;
+        return Tools.flatten([].concat.apply([], arr), depth - 1);
+     }
+    
+    static getMinMax(arr: number[]) {
+        return arr.reduce<{ min: number, max: number}>((p, c) => ({ min: Math.min(p.min, c), max: Math.max(p.max, c)}), { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY});
+    }
     static getRandomUniqueItems<T>(arr:T[], numItems: number): T[] {
         const indices = new Array(numItems).fill(0).map((v, i) => Math.floor(Math.random() * (arr.length - i)));
         const copy = arr.concat([]);

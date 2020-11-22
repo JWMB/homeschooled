@@ -27,7 +27,7 @@ export class Game {
       const jsons = await Tools.fetchMultipleJson({
         // "sv": "/data/countries-sv.json", // https://github.com/stefangabos/world_countries/tree/master/data // pretty crap coverage, some 20-30 countries missing...
         // "en": "/data/countries-en.json", 
-        "geo": "/data/geo.all-50.json" // https://geojson-maps.ash.ms/
+        "geo": "/data/geo.all-50.json" // https://geojson-maps.ash.ms/ https://www.naturalearthdata.com/downloads/
       });
   
       this.countriesCollection.init(await (await fetch("/data/countries-data.json")).json());
@@ -38,9 +38,9 @@ export class Game {
 
       this.countriesCollection.setTranslations(await Tools.fetchMultipleJson({ "sv": "/data/countries-sv.json" }));
       //Remove if we have no flag or translation
-      console.log("No translation:", this.countriesCollection.get().filter(c => c.names[this.lang] == null).map(c => `"name":"${c.name.common}","alpha2":"${c.cca2}"`));
+      // console.log("No translation:", this.countriesCollection.get().filter(c => c.names[this.lang] == null).map(c => `"name":"${c.name.common}","alpha2":"${c.cca2}"`));
       this.countriesCollection.remove(c => c.names[this.lang] == null);
-      console.log("No flag:", this.countriesCollection.get().filter(c => this.flags.getSvg(c.cca2) == null));
+      // console.log("No flag:", this.countriesCollection.get().filter(c => this.flags.getSvg(c.cca2) == null));
       this.countriesCollection.remove(c => this.flags.getSvg(c.cca2) == null);
 
       //console.log(this.countriesCollection.get().map(c => `${c.cca2} ${c.name.common} ${c.names.sv}`));
@@ -132,8 +132,10 @@ export class Game {
     function createSelection(countries: CountryInfoX[], filter: CountriesFilter) {
       let inLevel = countries.filter(filter.countries).sort((a, b) => b.area - a.area);
       if (!!filter.sizePercentiles) {
-        var r = Ranges.parse(filter.sizePercentiles);
-        inLevel = inLevel.filter((c, i) => r.isIncluded(100 * i / inLevel.length));
+        const r = Ranges.parse(filter.sizePercentiles);
+        inLevel = inLevel.map((c, i) => ({ country: c, percentile: 100 * (1 - i / inLevel.length) }))
+          .filter(o => r.isIncluded(o.percentile))
+          .map(o => o.country);
       }
       return inLevel;
     }
