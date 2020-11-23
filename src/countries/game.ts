@@ -24,19 +24,16 @@ export class Game {
   
     async init(baseUrl: string) {
       this.map = new MyMap();
-      const jsons = await Tools.fetchMultipleJson({
-        // "sv": "/data/countries-sv.json", // https://github.com/stefangabos/world_countries/tree/master/data // pretty crap coverage, some 20-30 countries missing...
-        // "en": "/data/countries-en.json", 
-        "geo": `${baseUrl}geo.all-50.json` // https://geojson-maps.ash.ms/ https://www.naturalearthdata.com/downloads/
-      });
-  
+       // https://geojson-maps.ash.ms/ https://www.naturalearthdata.com/downloads/
+      const jsons = await Tools.fetchMultipleJson({"geo": `${baseUrl}geo.all-50.json`});
+
       this.countriesCollection.init(await (await fetch(`${baseUrl}countries-data.json`)).json());
 
       this.flags = new Flags();
       //await this.flags.loadSeparate("/data/svg/", this.countriesCollection.get().map(o => o.cca2));
       await this.flags.load(`${baseUrl}flags.xml`);
 
-      this.countriesCollection.setTranslations(await Tools.fetchMultipleJson({ "sv": `${baseUrl}countries-sv.json` }));
+      this.countriesCollection.addTranslations(await Tools.fetchMultipleJson({ "sv": `${baseUrl}countries-sv.json` }));
       //Remove if we have no flag or translation
       // console.log("No translation:", this.countriesCollection.get().filter(c => c.names[this.lang] == null).map(c => `"name":"${c.name.common}","alpha2":"${c.cca2}"`));
       this.countriesCollection.remove(c => c.names[this.lang] == null);
@@ -53,9 +50,29 @@ export class Game {
         .filter(ci => this.flags.getSvg(ci.cca2) != null);
     }
   
-    // async selectCountry(target: any) {
-    //     await this.generateProblem(target.selectedOptions[0].value);
-    // }
+    investigateSplitRegions(geo: any) {
+      const xx = geo.features.filter(o => o.type == "Feature" && o.geometry.type == "MultiPolygon")
+        .filter(o => o.properties.name == "France");
+      console.log(xx.map(o => `${o.properties.iso_a2} ${o.properties.name} ${XX(o.geometry.coordinates)}`).join("\n"));
+  
+      function XX(coordinates: [number, number][][][]) {
+      const allBounds = coordinates.map(cset => {
+        const bounds = cset.map(sub => {
+          const longs = Tools.getMinMax(sub.map(o => o[0]));
+          const lats = Tools.getMinMax(sub.map(o => o[1]));
+          return { w: longs.min, e: longs.max, n: lats.max, s: lats.min };
+          //return `long:${longs.min} - ${longs.max} lat:${lats.min} - ${lats.max}`;
+        });
+        return bounds;
+      });
+  
+      const flattened = Tools.flatten(allBounds, 2);
+      const boundsAreas = flattened.map(b => (b.e - b.w) * (b.n - b.s));
+      const ordered = boundsAreas.sort((a, b) => b - a);
+      const factors = ordered.map(o => o / ordered[0]);
+      return "ordered: " + factors.join(",");
+      }
+    }
   
   correctAlternativeForShow: { id: string, name: string, flag: string };
   alternatives: { id: string, name: string, selected: boolean, flag: string }[] = [];

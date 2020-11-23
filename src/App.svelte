@@ -6,6 +6,7 @@
 	import { Tools } from "./tools";
 	import { Game } from "./countries/game";
 	import { DropZone, Game as SortingGame } from "./sorting/game";
+import { WordImport } from "./words/wordImport";
 
 	let game = new Game();
 	export let alternatives = game.alternatives;
@@ -15,38 +16,17 @@
 	export let images: { src: string; alt: string }[] = [];
 
 	onMount(async () => {
+		const words = await (await fetch(`/data/words/difficult-words-sv.json`)).json();
+		const flat = WordImport.importFromWordClassJson(words);
+		console.log(flat);
+
 		// const jsons = await Tools.fetchMultipleJson({"geo": "/data/geo.all-50.json"});
-		// investigateSplitRegions(jsons.geo);
 		await startSorting();
 	
 		const baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
 		await game.init(baseUrl);
 		generateProblem();
 	});
-
-	function investigateSplitRegions(geo: any) {
-		const xx = geo.features.filter(o => o.type == "Feature" && o.geometry.type == "MultiPolygon")
-	  	.filter(o => o.properties.name == "France");
-	  console.log(xx.map(o => `${o.properties.iso_a2} ${o.properties.name} ${XX(o.geometry.coordinates)}`).join("\n"));
-
-	  function XX(coordinates: [number, number][][][]) {
-		const allBounds = coordinates.map(cset => {
-			const bounds = cset.map(sub => {
-				const longs = Tools.getMinMax(sub.map(o => o[0]));
-				const lats = Tools.getMinMax(sub.map(o => o[1]));
-				return { w: longs.min, e: longs.max, n: lats.max, s: lats.min };
-				//return `long:${longs.min} - ${longs.max} lat:${lats.min} - ${lats.max}`;
-			});
-			return bounds;
-		});
-
-		const flattened = Tools.flatten(allBounds, 2);
-		const boundsAreas = flattened.map(b => (b.e - b.w) * (b.n - b.s));
-		const ordered = boundsAreas.sort((a, b) => b - a);
-		const factors = ordered.map(o => o / ordered[0]);
-		return "ordered: " + factors.join(",");
-	  }
-	}
 
 	function speak(phrase: string) {
 		if (!window.SpeechSynthesisUtterance || !window.speechSynthesis) return;
@@ -121,8 +101,9 @@
 	main { @apply p-4; }
 	h1, p { @apply text-gray-600; }
 	:global(.response-option.selected) { border-width: 5px; border-color: brown; }
-	:global(.country-name) { font-size: x-large; font-weight: bold; }
-	:global(.flag) { width: 200px; height: 170px; }
+	:global(.response-option .title) { font-size: x-large; font-weight: bold; }
+	:global(.response-option .text) { font-size: large; font-weight: bold; }
+	:global(.response-option .html) { width: 200px; height: 170px; }
 </style>
 
 <link rel="stylesheet" crossorigin="" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
@@ -153,7 +134,7 @@
 				<Alternative
 					alternativeId="{correctAlternativeForShow.id}"
 					text="{correctAlternativeForShow.name}"
-					flagSvg="{correctAlternativeForShow.flag}"
+					html="{correctAlternativeForShow.flag}"
 				/>
 				<br />
 			</div>
@@ -163,7 +144,7 @@
 				selected="{item.selected}"
 				alternativeId="{item.id}"
 				text="{item.name}"
-				flagSvg="{item.flag}"
+				html="{item.flag}"
 				on:message="{(e) => registerResponse(e.detail.alternativeId)}"
 			/>
 			<br/>

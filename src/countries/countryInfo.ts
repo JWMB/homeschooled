@@ -63,14 +63,6 @@ export class CountryInfoCollection {
         } );
         this.countries = data;
     }
-    setTranslations(jsons: {[language: string]: TranslationEntry[]}) {
-        // const jsons = await Tools.fetchMultipleJson({
-        //     "en": "/data/countries-en.json", // https://github.com/stefangabos/world_countries/tree/master/data
-        //     "sv": "/data/countries-sv.json",
-        //     "geo": "/data/geo.all-50.json" // https://geojson-maps.ash.ms/
-        // });
-        this.addTranslations(jsons);
-    }
 
     async loadImagesForCountry(country: string) {
         const searchPhrase = this.getSearchPhrase(this.getCountryName(country, "en"), "nature");
@@ -103,7 +95,7 @@ export class CountryInfoCollection {
 
     static getGoogleImageUrls(html: string) {
         const doc = HtmlTools.parseHtml(html);
-        const nodes = HtmlTools.getNodesXPath(doc, "//img[starts-with(@src,'data:image') and @data-atf='true']");
+        const nodes = <HTMLImageElement[]>HtmlTools.getNodesXPath(doc, "//img[starts-with(@src,'data:image') and @data-atf='true']");
         return nodes.map(n => ({ 
             src: n.getAttribute("src"), 
             alt : n.getAttribute("alt")
@@ -111,7 +103,7 @@ export class CountryInfoCollection {
     }
     static getDDGImageUrls(html: string) {
         const doc = HtmlTools.parseHtml(html);
-        const nodes = HtmlTools.getNodesXPath(doc, "//img[contains(@class, 'tile')]");
+        const nodes = <HTMLImageElement[]>HtmlTools.getNodesXPath(doc, "//img[contains(@class, 'tile')]");
         return nodes.map(n => ({ 
             src: new URL(n.getAttribute("src"), "https://localhost").searchParams.get("u"), 
             alt : n.getAttribute("alt")

@@ -6,6 +6,7 @@ export class Flags {
 
     async loadSeparate(path: string, cca2Array: string[]) {
         // create joined flags xml
+        // https://github.com/hjnilsson/country-flags
         const flagUrls = cca2Array.map(o => ({ code: o, url: `${path}${o}.svg`}));
         const loaded = await Tools.fetchMultiple(Tools.arrayToObject(flagUrls, o => o.code, o => o.url), async r => await r.text());
         const joinedFlagsSvgs = Object.keys(loaded).map(k => {
