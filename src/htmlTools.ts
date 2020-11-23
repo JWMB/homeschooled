@@ -27,7 +27,7 @@ export class HtmlTools {
     }
     static getNodesXPath(doc: Document, xpath: string, parentNode: Node = null) {
         const iterator = doc.evaluate(xpath, parentNode || doc, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
-        return Tools.iteratorToArray(() => <HTMLImageElement>iterator.iterateNext());
+        return Tools.iteratorToArray(() => iterator.iterateNext());
         // //external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse4.mm.bing.net%2Fth%3Fid%3DOIP.0HfCPE3NPYmPo76MPQQUJAHaE7%26pid%3DApi&f=1
         // console.log(nodes);
         // return nodes.map(n => ({ 
