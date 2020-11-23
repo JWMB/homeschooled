@@ -4,17 +4,33 @@ import { Flags } from "./flags";
 import { MyMap } from "./map";
 import { Ranges } from "../ranges";
 import { Tools } from "../tools";
+import type { Stimulus, Game as GameBase, ProblemGenerator } from "../game";
 
 interface CountriesFilter {
   countries: (country: CountryInfoX) => boolean;
   sizePercentiles?: string;
 }
 
-export class Game {
+export class CountryProblemGenerator implements ProblemGenerator {
+  stimuli: Stimulus[];
+  inputs: Stimulus[];
+
+  private previousCorrectAnswers: any[];
+
+  async init() {
+  }
+  generateTask(level: number) {
+  }
+  registerResponse(inputId: any): { awaitingFurtherRespone: boolean; wasCorrect: boolean; } {
+    throw new Error("Method not implemented.");
+  }
+}
+
+export class Game implements GameBase {
     score: number = 0;
     correctHistory: boolean[] = [];
     map: MyMap;
-    countries: CountryInfoX[] = [];
+    // countries: CountryInfoX[] = [];
     countriesCollection = new CountryInfoCollection();
     flags: Flags;
     lang = "sv";
@@ -45,9 +61,8 @@ export class Game {
       await this.map.create(this.countriesCollection, jsons["geo"]);
       await Tools.sleep(500);
   
-      this.countries = this.countriesCollection.get()
-        .filter(ci => this.map.getCountryBounds(ci.cca2) != null)
-        .filter(ci => this.flags.getSvg(ci.cca2) != null);
+      // this.countries = this.countriesCollection.get()
+      //   .filter(ci => this.map.getCountryBounds(ci.cca2) != null);
     }
   
     investigateSplitRegions(geo: any) {
@@ -74,8 +89,8 @@ export class Game {
       }
     }
   
-  correctAlternativeForShow: { id: string, name: string, flag: string };
-  alternatives: { id: string, name: string, selected: boolean, flag: string }[] = [];
+  correctAlternativeForShow: Stimulus; // { id: string, title: string, html: string };
+  alternatives: Stimulus[] = []; //{ id: string, title: string, selected: boolean, html: string }[] = [];
   private previousCorrectAnswers: CountryInfoX[] = [];
 
   generateProblem(level: number = 0) {
@@ -160,7 +175,7 @@ export class Game {
       return inLevel;
     }
 
-    const questionSelection = createSelection(this.countries, levelData.question);
+    const questionSelection = createSelection(this.countriesCollection.get(), levelData.question);
     this.map.fitCountries(questionSelection.map(o => o.cca2));
     // console.log(level, questionSelection);
     const dontUseLatest = Tools.sliceFromEnd(this.previousCorrectAnswers, 3).map(o => o.cca2);
@@ -168,7 +183,7 @@ export class Game {
     // selectedCountry = "Ryssland"; // !!correctPreset ? this.countriesCollection.getCountryEntry(correctPreset) : 
     this.previousCorrectAnswers.push(this.selectedCountry);
 
-    const possibleAlternatives = levelData.alternatives == null ? questionSelection : createSelection(this.countries, levelData.alternatives);
+    const possibleAlternatives = levelData.alternatives == null ? questionSelection : createSelection(this.countriesCollection.get(), levelData.alternatives);
     const sortedByDistance = this.countriesCollection.getCenterDistances(this.selectedCountry, possibleAlternatives).sort((a, b) => a.dist - b.dist);
     // console.log(sortedByDistance);
 
@@ -178,21 +193,21 @@ export class Game {
     this.alternatives = this.generateAlternatives(closeCountries, this.selectedCountry);
   
     const variant = level % inLevelVariants;
-    this.correctAlternativeForShow = { ...this.alternatives.find(o => o.name === this.selectedCountry.names[this.lang])};
+    this.correctAlternativeForShow = { ...this.alternatives.find(o => o.title === this.selectedCountry.names[this.lang])};
     if (variant === 0) {
-      this.correctAlternativeForShow.flag = null;
-      this.alternatives.forEach(o => o.name = "");
+      this.correctAlternativeForShow.html = null;
+      this.alternatives.forEach(o => o.title = "");
       this.map.selectCountry(this.selectedCountry.cca2);
 
     } else if (variant === 1) {
-      this.correctAlternativeForShow.name = "";
-      this.alternatives.forEach(o => o.flag = null);
+      this.correctAlternativeForShow.title = "";
+      this.alternatives.forEach(o => o.html = null);
       this.map.selectCountry(this.selectedCountry.cca2);
 
     } else {
-      this.correctAlternativeForShow.name = this.selectedCountry.capital[0];
-      this.correctAlternativeForShow.flag = null;
-      this.alternatives.forEach(o => o.name = "");
+      this.correctAlternativeForShow.title = this.selectedCountry.capital[0];
+      this.correctAlternativeForShow.html = null;
+      this.alternatives.forEach(o => o.title = "");
       this.map.selectCountry(null);
     }
     // this.map.fitCountry(this.selectedCountry.cca2);
@@ -213,15 +228,15 @@ export class Game {
     // const notFound = tmp.filter(o => !o.data || !this.flags.getSvg(o.data.entry.alpha2));
     // if (notFound.length) console.log("Not found:", notFound.map(o => o.translation + "/" + o.data.entry.alpha2), notFound.map(o => this.flags.getSvg(o.data.entry.alpha2)));
     return tmp.filter(o => !!o.data)
-      .map(ctry => ({ id: ctry.data.entry.cca2, name: ctry.translation, flag: this.flags.getSvg(ctry.data.entry.cca2), selected: false, contour: ctry.data.feature }))
-      .filter(o => !!o.flag && !!o.contour);
+      .map(ctry => ({ id: ctry.data.entry.cca2, title: ctry.translation, html: this.flags.getSvg(ctry.data.entry.cca2), selected: false, contour: ctry.data.feature }))
+      .filter(o => !!o.html && !!o.contour);
   }
 
   registerResponse(id: string): boolean {
     if (!this.acceptResponse) return false;
   
     this.alternatives.forEach(o => {
-      o.name = this.countriesCollection.getCountryEntry(o.id).names[this.lang];
+      o.title = this.countriesCollection.getCountryEntry(o.id).names[this.lang];
     });
 
     const wasCorrect = id === this.selectedCountry.cca2;
@@ -240,4 +255,12 @@ export class Game {
         return false;
     }
   }
+
+  async responseFeedback(wasCorrect: boolean, chosenId: string) {
+    if (!wasCorrect) {
+      await this.map.flyTo(chosenId);
+      await Tools.sleep(1000);
+      }
+    }
+
 }

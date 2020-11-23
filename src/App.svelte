@@ -4,23 +4,21 @@
 	import CardComponent from "./cardComponent.svelte";
 	import TailwindCSS from "./style/TailwindCSS.svelte";
 	import { Tools } from "./tools";
-	import { Game } from "./countries/game";
+	import { Game as CountryGame } from "./countries/game";
 	import { DropZone, Game as SortingGame } from "./sorting/game";
-import { WordImport } from "./words/wordImport";
+	import { WordImport } from "./words/wordImport";
+	import type { Game, Stimulus } from "./game";
 
-	let game = new Game();
-	export let alternatives = game.alternatives;
-	export let correctAlternativeForShow;
-	export let score = 0;
-	export let partCorrect = "";
-	export let images: { src: string; alt: string }[] = [];
+	let game: Game = new CountryGame();
+	let alternatives: Stimulus[] = [];
+	let correctAlternativeForShow;
+	let score = 0;
+	let partCorrect = "";
+	let images: { src: string; alt: string }[] = [];
 
 	onMount(async () => {
-		const words = await (await fetch(`/data/words/difficult-words-sv.json`)).json();
-		const flat = WordImport.importFromWordClassJson(words);
-		console.log(flat);
-
-		// const jsons = await Tools.fetchMultipleJson({"geo": "/data/geo.all-50.json"});
+		// const words = await (await fetch(`/data/words/difficult-words-sv.json`)).json();
+		// const flat = WordImport.importFromWordClassJson(words);
 		await startSorting();
 	
 		const baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
@@ -49,7 +47,6 @@ import { WordImport } from "./words/wordImport";
 		game.generateProblem(level);
 		// speak(game.selectedCountry.names.en);
 		alternatives = [...game.alternatives]; // Trigger DOM
-		//correctAlternativeForShow = null;
 		correctAlternativeForShow = game.correctAlternativeForShow; // Trigger DOM
 		// game.countriesCollection.loadImagesForCountry(game.selectedCountry.alpha2).then(r => images = r);
 	}
@@ -73,8 +70,7 @@ import { WordImport } from "./words/wordImport";
 		}
 		if (!result) {
 			alternatives = [...game.alternatives]; // Trigger DOM
-			await game.map.flyTo(alternativeId);
-			await Tools.sleep(1000);
+			await game.responseFeedback(result, alternativeId);
 		}
 		generateProblem();
 	}
@@ -133,8 +129,8 @@ import { WordImport } from "./words/wordImport";
 			<div>
 				<Alternative
 					alternativeId="{correctAlternativeForShow.id}"
-					text="{correctAlternativeForShow.name}"
-					html="{correctAlternativeForShow.flag}"
+					text="{correctAlternativeForShow.title}"
+					html="{correctAlternativeForShow.html}"
 				/>
 				<br />
 			</div>
@@ -143,8 +139,8 @@ import { WordImport } from "./words/wordImport";
 			<Alternative
 				selected="{item.selected}"
 				alternativeId="{item.id}"
-				text="{item.name}"
-				html="{item.flag}"
+				text="{item.title}"
+				html="{item.html}"
 				on:message="{(e) => registerResponse(e.detail.alternativeId)}"
 			/>
 			<br/>

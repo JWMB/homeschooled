@@ -53,6 +53,7 @@ export class MyMap {
         // this.countriesBorders.forEach(pl => pl.bindPopup(pl.feature.properties.name));
         this.countriesBorders.forEach(l => l.setStyle({ stroke: false, color: "#ff0000", fill: false, fillColor: "#ff000088" }));
 
+        this.countryInfos.remove(ci => this.getCountryBounds(ci.cca2) == null);
         // const country = this.countriesBorders.find(pl => pl.feature.properties.name == "Sweden");
         // const bounds = !!country ? country.getBounds() : geojson.getBounds();
         const bounds = geojson.getBounds();
