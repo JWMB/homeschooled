@@ -6,7 +6,7 @@
 	import { Tools } from "./tools";
 	import { DropZone, Game as SortingGame } from "./sorting/game";
 	import { Game } from "./game";
-	import { CountryProblemGenerator } from "./countries/game";
+	import { CountryProblemGenerator } from "./countries/countryProblems";
 
 	let game: Game;
 	let alternatives = [];
