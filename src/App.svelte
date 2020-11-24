@@ -1,16 +1,17 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import Alternative from "./alternative.svelte";
-	import CardComponent from "./cardComponent.svelte";
-	import TailwindCSS from "./style/TailwindCSS.svelte";
-	import { Tools } from "./tools";
-	import { DropZone, Game as SortingGame } from "./sorting/game";
-	import { Game } from "./game";
-	import { CountryProblemGenerator } from "./countries/countryProblems";
+import { onMount } from "svelte";
+import Alternative from "./alternative.svelte";
+import CardComponent from "./cardComponent.svelte";
+import TailwindCSS from "./style/TailwindCSS.svelte";
+import { Tools } from "./tools";
+import { DropZone, Game as SortingGame } from "./sorting/game";
+import { Game } from "./game";
+import { CountryProblemGenerator } from "./countries/countryProblems";
+import { WordProblemGenerator } from "./words/wordProblems";
 
 	let game: Game;
-	let alternatives = [];
-	let correctAlternativeForShow;
+	let inputs = [];
+	let stimuli = [];
 	let score = 0;
 	let partCorrect = "";
 	let images: { src: string; alt: string }[] = [];
@@ -21,7 +22,8 @@
 		await startSorting();
 	
 		const baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
-		const generator = new CountryProblemGenerator();
+		// const generator = new CountryProblemGenerator();
+		const generator = new WordProblemGenerator();
 		await generator.init({ baseUrl: baseUrl });
 		game = new Game();
 		game.generator = generator;
@@ -48,8 +50,9 @@
 	function generateProblem() {
 		game.generateProblem(level);
 		// speak(game.selectedCountry.names.en);
-		alternatives = [...game.alternatives]; // Trigger DOM
-		correctAlternativeForShow = game.correctAlternativeForShow; // Trigger DOM
+
+		stimuli = [...game.stimuli]; // Trigger DOM
+		inputs = [...game.inputs]; // Trigger DOM
 		// game.countriesCollection.loadImagesForCountry(game.selectedCountry.alpha2).then(r => images = r);
 	}
 	async function registerResponse(alternativeId) {
@@ -71,7 +74,8 @@
 			}
 		}
 		if (!result) {
-			alternatives = [...game.alternatives]; // Trigger DOM
+			inputs = [...game.inputs]; // Trigger DOM
+			stimuli = [...game.stimuli]; // Trigger DOM
 			await game.responseFeedback(result, alternativeId);
 		}
 		generateProblem();
@@ -127,21 +131,22 @@
 		</div>
 		<div style="font-size: xx-large;">{score}</div>
 		<div style="">{partCorrect}</div>
-		{#if !!correctAlternativeForShow}
-			<div>
+		<!-- {#if !!stimuli} -->
+		{#each stimuli as item}
 				<Alternative
-					alternativeId="{correctAlternativeForShow.id}"
-					text="{correctAlternativeForShow.title}"
-					html="{correctAlternativeForShow.html}"
+					alternativeId="{item.id}"
+					title="{item.title}"
+					text="{item.text}"
+					html="{item.html}"
 				/>
 				<br />
-			</div>
-		{/if}
-		{#each alternatives as item}
+		{/each}
+		{#each inputs as item}
 			<Alternative
 				selected="{item.selected}"
 				alternativeId="{item.id}"
-				text="{item.title}"
+				title="{item.title}"
+				text="{item.text}"
 				html="{item.html}"
 				on:message="{(e) => registerResponse(e.detail.alternativeId)}"
 			/>

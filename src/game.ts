@@ -34,8 +34,8 @@ export class Game {
     correctHistory: boolean[] = [];
     acceptResponse: boolean = false;
 
-	correctAlternativeForShow: Stimulus;
-	alternatives: Stimulus[] = [];
+	stimuli: Stimulus[] = [];
+	inputs: Stimulus[] = [];
   
 	generator: ProblemGenerator;
 
@@ -43,8 +43,8 @@ export class Game {
 	this.acceptResponse = true;
 
 	this.generator.generateTask(level);
-	this.alternatives = this.generator.inputs;
-	this.correctAlternativeForShow = this.generator.stimuli[0];
+	this.inputs = this.generator.inputs;
+	this.stimuli = this.generator.stimuli;
   }
 
   registerResponse(id: string): boolean {
@@ -58,9 +58,10 @@ export class Game {
         this.score += 10;
         return true;
     } else {
-        this.score -= 5;
-        const correctAlternative = this.alternatives.find(o => o.id == this.correctAlternativeForShow.id);
-        correctAlternative.selected = true;
+		this.score -= 5;
+		this.inputs = this.generator.inputs; //In case collection was modified in generator
+        const correctInputs = this.inputs.filter(o => this.stimuli.find(p => o.id === p.id) != null);
+        correctInputs.forEach(o => o.selected = true);
     
         return false;
     }

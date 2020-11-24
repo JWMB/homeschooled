@@ -65,6 +65,10 @@ export class Tools {
         return result;
     }
 
+    static insert<T>(arr: T[], index: number, ...items: T[]) {
+        arr.splice(index, 0, ...items);
+    }
+
     static flatten<T>(arr: T[][], depth: number = 1): T[] { 
         if (depth == 0) return <T[]><any>arr;
         return Tools.flatten([].concat.apply([], arr), depth - 1);
