@@ -14,4 +14,7 @@ export class WordProblems implements ProblemGenerator {
 	registerResponse(inputId: any): { awaitingFurtherRespone: boolean, wasCorrect: boolean } {
 		return { awaitingFurtherRespone: false, wasCorrect: inputId === this.stimuli[0].id };
 	}
+	responseFeedback(wasCorrect: boolean, chosenId: string): Promise<void> {
+		throw new Error("Method not implemented.");
+	}
 }

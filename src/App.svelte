@@ -4,13 +4,12 @@
 	import CardComponent from "./cardComponent.svelte";
 	import TailwindCSS from "./style/TailwindCSS.svelte";
 	import { Tools } from "./tools";
-	import { Game as CountryGame } from "./countries/game";
 	import { DropZone, Game as SortingGame } from "./sorting/game";
-	import { WordImport } from "./words/wordImport";
-	import type { Game, Stimulus } from "./game";
+	import { Game } from "./game";
+	import { CountryProblemGenerator } from "./countries/game";
 
-	let game: Game = new CountryGame();
-	let alternatives: Stimulus[] = [];
+	let game: Game;
+	let alternatives = [];
 	let correctAlternativeForShow;
 	let score = 0;
 	let partCorrect = "";
@@ -22,7 +21,10 @@
 		await startSorting();
 	
 		const baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
-		await game.init(baseUrl);
+		const generator = new CountryProblemGenerator();
+		await generator.init({ baseUrl: baseUrl });
+		game = new Game();
+		game.generator = generator;
 		generateProblem();
 	});
 

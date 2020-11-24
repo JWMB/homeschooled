@@ -132,7 +132,8 @@ export class CountryInfoCollection {
 
         const borders = otherCountries == null ? this.borders
             : this.borders.filter(b => this.getCountryEntryByIso2(b.feature.properties.iso_a2) != null);
-        return borders.map(b => ({ dist: CountryInfoCollection.getDistance(b.getCenter(), center), name: b.feature.properties.name }));
+
+        return borders.map(b => ({ dist: CountryInfoCollection.getDistance(b.getCenter(), center), country: this.getCountryEntryByIso2(b.feature.properties.iso_a2) }));
     }
 
     static getDistance(c1: LatLng, c2: LatLng) {

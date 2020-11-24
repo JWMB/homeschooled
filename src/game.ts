@@ -1,16 +1,3 @@
-export interface Game {
-	init(baseUrl: string): Promise<void>;
-	generateProblem(level: number);
-	registerResponse(alternativeId: any);
-	responseFeedback(wasCorrect: boolean, chosenId: string): Promise<void>;
-	score: number;
-	correctHistory: boolean[];
-	acceptResponse: boolean;
-
-	alternatives: Stimulus[];
-	correctAlternativeForShow: Stimulus;
-}
-
 export interface Stimulus {
 	id: string;
 	title: string;
@@ -23,12 +10,26 @@ export interface ProblemGenerator {
 	stimuli: Stimulus[];
 	inputs: Stimulus[];
 
-	init(): Promise<void>;
+	init(settings: any): Promise<void>;
 	generateTask(level: number);
 	registerResponse(inputId: any): { awaitingFurtherRespone: boolean, wasCorrect: boolean };
+	responseFeedback(wasCorrect: boolean, chosenId: string): Promise<void>;
 }
 
-export class GameOO implements Game {
+// export interface Game {
+// 	init(baseUrl: string): Promise<void>;
+// 	generateProblem(level: number);
+// 	registerResponse(alternativeId: any);
+// 	responseFeedback(wasCorrect: boolean, chosenId: string): Promise<void>;
+// 	score: number;
+// 	correctHistory: boolean[];
+// 	acceptResponse: boolean;
+
+// 	alternatives: Stimulus[];
+// 	correctAlternativeForShow: Stimulus;
+// }
+
+export class Game {
     score: number = 0;
     correctHistory: boolean[] = [];
     acceptResponse: boolean = false;
@@ -37,9 +38,6 @@ export class GameOO implements Game {
 	alternatives: Stimulus[] = [];
   
 	generator: ProblemGenerator;
-
-    async init(baseUrl: string) {
-	}
 
   generateProblem(level: number = 0) {
 	this.acceptResponse = true;
@@ -64,15 +62,11 @@ export class GameOO implements Game {
         const correctAlternative = this.alternatives.find(o => o.id == this.correctAlternativeForShow.id);
         correctAlternative.selected = true;
     
-        // this.map.selectCountry(id);
         return false;
     }
   }
 
   async responseFeedback(wasCorrect: boolean, chosenId: string) {
-    if (!wasCorrect) {
-    //   await this.map.flyTo(chosenId);
-    //   await Tools.sleep(1000);
-	  }
-	}
+		await this.generator.responseFeedback(wasCorrect, chosenId);
+}
 }
