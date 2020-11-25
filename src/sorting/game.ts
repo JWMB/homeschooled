@@ -105,14 +105,32 @@ export class Game {
 			el.style.opacity = "0.1";
 			e.dataTransfer.dropEffect = 'move';
 		});
-		el.addEventListener("touchStart", e => {
-			console.log("touchStart", e);
+
+		el.addEventListener("touchstart", e => {
+			console.log("touchstart", e.touches.length, e.targetTouches.length);
+
+			this.dropZone.startDrag(el);
+			// el.style.opacity = "0.1";
+			el.style.position = "fixed";
 		});
-		el.addEventListener("touchEnd", e => {
-			console.log("touchEnd", e);
+		el.addEventListener("touchmove", e => {
+			const touch = e.changedTouches[0];
+			// console.log("touchmove", touch.clientX, touch.clientY); //, e.touches, e.targetTouches, e.changedTouches);
+			el.style.left = `${touch.clientX - el.clientWidth / 2}px`;
+			el.style.top = `${touch.clientY - el.clientHeight / 2}px`;
+			if (this.dropZone.isInside(touch.clientX, touch.clientY)) {
+				this.dropZone.makePlaceFor(touch.clientX, touch.clientY, null);
+			}
 		});
-		el.addEventListener("touchMove", e => {
-			console.log("touchMove", e);
+		el.addEventListener("touchend", e => {
+			const touch = e.changedTouches[0];
+			console.log("touchend", touch.clientX, touch.clientY, e.targetTouches);
+			if (this.dropZone.isInside(touch.clientX, touch.clientY)) {
+				// el.style.cursor = "copy";
+				this.dropZone.makePlaceFor(touch.clientX, touch.clientY, el);
+			} else {
+				// el.style.cursor = "move";
+			}
 		});
 
 		el.addEventListener("drag", e => {
