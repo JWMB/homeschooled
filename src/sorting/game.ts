@@ -105,6 +105,16 @@ export class Game {
 			el.style.opacity = "0.1";
 			e.dataTransfer.dropEffect = 'move';
 		});
+		el.addEventListener("touchStart", e => {
+			console.log("touchStart", e);
+		});
+		el.addEventListener("touchEnd", e => {
+			console.log("touchEnd", e);
+		});
+		el.addEventListener("touchMove", e => {
+			console.log("touchMove", e);
+		});
+
 		el.addEventListener("drag", e => {
 			if (this.dropZone.isInside(e.clientX, e.clientY)) {
 				el.style.cursor = "copy";
@@ -120,8 +130,6 @@ export class Game {
 			if (this.dropZone.isInside(e.clientX, e.clientY)) {
 				this.dropZone.makePlaceFor(e.clientX, e.clientY, el);
 			} else {
-                console.log("Wasn't inside", e.clientX, e.clientY);
-				// console.log(e);
 				el.style.position = "absolute";
 				el.parentElement.offsetTop
 				el.style.left = `${e.clientX}px`;
