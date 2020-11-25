@@ -30,7 +30,7 @@ import { WordProblemGenerator } from "./words/wordProblems";
 			baseUrl += "words/";
 		} else {
 			generator = new CountryProblemGenerator();
-			// baseUrl += "countries/";
+			baseUrl += "countries/";
 		}
 		//const baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
 		await generator.init({ baseUrl: baseUrl });
