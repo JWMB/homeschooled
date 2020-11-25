@@ -29,8 +29,8 @@ function choose() {
 </script>
 
 <div class="response-option {selected ? 'selected' : ''}"  on:click="{choose}"> 
-    <div class="title">{title}</div>
-    <div class="text">{text}</div>
+    <div class="title">{title || ""}</div>
+    <div class="text">{text || ""}</div>
     {#if html != null}
     <div class="flag" bind:this={me}></div>
     {/if}

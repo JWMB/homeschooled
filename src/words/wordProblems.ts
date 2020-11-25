@@ -11,7 +11,7 @@ export class WordProblemGenerator implements ProblemGenerator {
 	private wordClasses: string[];
 
 	async init(settings: any) {
-		const wordsSrc = await (await fetch(`${settings.baseUrl}words/difficult-words-sv.json`)).json();
+		const wordsSrc = await (await fetch(`${settings.baseUrl}difficult-words-sv.json`)).json();
 		this.wordClasses = Object.keys(wordsSrc);
 		this.words = WordImport.importFromWordClassJson(wordsSrc);
 	}

@@ -25,8 +25,8 @@ export class CountryProblemGenerator implements ProblemGenerator {
     const baseUrl: string = settings.baseUrl;
     this.map = new MyMap();
     // https://geojson-maps.ash.ms/ https://www.naturalearthdata.com/downloads/
-   const jsons = await Tools.fetchMultipleJson({"geo": `${baseUrl}geo.all-50.json`});
-
+    console.log(baseUrl);
+    const jsons = await Tools.fetchMultipleJson({"geo": `${baseUrl}geo.all-50.json`});
    this.countriesCollection.init(await (await fetch(`${baseUrl}countries-data.json`)).json());
 
    this.flags = new Flags();

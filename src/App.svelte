@@ -21,9 +21,18 @@ import { WordProblemGenerator } from "./words/wordProblems";
 		// const flat = WordImport.importFromWordClassJson(words);
 		await startSorting();
 	
-		const baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
-		// const generator = new CountryProblemGenerator();
-		const generator = new WordProblemGenerator();
+		let baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/";
+		const startParams = new URLSearchParams(window.location.search);
+		let generator: any; // TODO: 'ProblemGenerator' is not exported by src\game.ts, imported by src\App.svelte
+		const gameType = (startParams.get("type") || "").toLowerCase();
+		if (gameType == "word") {
+			generator = new WordProblemGenerator();
+			baseUrl += "words/";
+		} else {
+			generator = new CountryProblemGenerator();
+			// baseUrl += "countries/";
+		}
+		//const baseUrl = window.location.hostname === "localhost" ? "/data/" : "https://raw.githubusercontent.com/JWMB/game-level-contrib/master/countries/";
 		await generator.init({ baseUrl: baseUrl });
 		game = new Game();
 		game.generator = generator;
@@ -53,6 +62,7 @@ import { WordProblemGenerator } from "./words/wordProblems";
 
 		stimuli = [...game.stimuli]; // Trigger DOM
 		inputs = [...game.inputs]; // Trigger DOM
+		console.log(game.inputs);
 		// game.countriesCollection.loadImagesForCountry(game.selectedCountry.alpha2).then(r => images = r);
 	}
 	async function registerResponse(alternativeId) {
